@@ -44,17 +44,18 @@ def main():
     else:
         i = 0
         message = messages[0]
-        scheduleMessage = ''
-        while scheduleMessage == '':
+        scheduleFound = False
+        while not scheduleFound:
             message = messages[i]
+            i = i + 1
             msg = service.users().messages().get(userId='me', id=message['id']).execute()
+
             for header in msg['payload']['headers']:
                 if header['name'] == 'From':
-                    if header['value'] == 'Craig Colucci <craig@dbatvirginiabeach.com>':
-                        scheduleMessage = message['id']
-                        print(header['value'])
-                        #print(scheduleMessage)
+                    if header['value'] == 'Craig Colucci <craig@dbatvirginiabeach.com>':                      
+                        scheduleFound = True
 
+                        #extract the spreadsheet
                         try:
                             message = service.users().messages().get(userId='me', id=message['id']).execute()
 
@@ -69,14 +70,10 @@ def main():
                                     file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
                                     path = part['filename']
 
-                                    with open(path, 'w') as f:
+                                    with open(path, 'wb') as f:
                                         f.write(file_data)
-
-                        except errors.HttpError:
+                        except errors.HttpError as error:
                             print('An error occurred: %s' % error)
-
-
-            i = i + 1
 
 if __name__ == '__main__':
     main()
