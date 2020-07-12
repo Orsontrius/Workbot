@@ -1,7 +1,8 @@
 from __future__ import print_function
 import pickle
 import os.path
-import re
+import base64
+from apiclient import errors
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -46,16 +47,34 @@ def main():
         scheduleMessage = ''
         while scheduleMessage == '':
             message = messages[i]
-            msg = service.users().messages().get(userId='me', id=message['id'], format='metadata').execute()
+            msg = service.users().messages().get(userId='me', id=message['id']).execute()
             for header in msg['payload']['headers']:
                 if header['name'] == 'From':
                     if header['value'] == 'Craig Colucci <craig@dbatvirginiabeach.com>':
                         scheduleMessage = message['id']
                         print(header['value'])
-                        print(scheduleMessage)
+                        #print(scheduleMessage)
 
-                        schedule = service.users().messages().attatchments.get(userId='me', id=message['id']).execute()
-                        print("moo")
+                        try:
+                            message = service.users().messages().get(userId='me', id=message['id']).execute()
+
+                            for part in message['payload']['parts']:
+                                if part['filename']:
+                                    if 'data' in part['body']:
+                                        data = part['body']['data']
+                                    else:
+                                        att_id = part['body']['attachmentId']
+                                        att = service.users().messages().attachments().get(userId='me', messageId=message['id'],id=att_id).execute()
+                                        data = att['data']
+                                    file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
+                                    path = part['filename']
+
+                                    with open(path, 'w') as f:
+                                        f.write(file_data)
+
+                        except errors.HttpError:
+                            print('An error occurred: %s' % error)
+
 
             i = i + 1
 
