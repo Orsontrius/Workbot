@@ -1,4 +1,5 @@
 from __future__ import print_function
+import openpyxl
 import pickle
 import os.path
 import base64
@@ -72,8 +73,17 @@ def main():
 
                                     with open(path, 'wb') as f:
                                         f.write(file_data)
+                                        name = f.name
+                                    
+                                    parse_spreadsheet(name)
                         except errors.HttpError as error:
                             print('An error occurred: %s' % error)
+
+def parse_spreadsheet(file):
+    wb = openpyxl.load_workbook(filename=file)
+    ws = wb.active
+
+
 
 if __name__ == '__main__':
     main()
