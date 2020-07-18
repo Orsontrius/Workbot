@@ -21,10 +21,12 @@ def parse_spreadsheet(file):
     for i in ws.iter_rows(min_row=dateRow, max_row=dateRow, values_only=True):
         dates = i
 
-
+    data = {}
     for i in range(len(times)):
         if re.search("[am]|[pm]", str(times[i])):
-            
+            data[str(dates[i])] = str(times[i])
+
+    print(data)            
 
     
 
